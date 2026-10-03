@@ -19,6 +19,12 @@ Claude Code の mod（プラグイン）を置くリポジトリ。各 mod は�
 - コミット・push はユーザーが明示的に指示するまでしない
 - Claude 側で mod のコードを直した場合も、上の手順 2〜6 で反映する
 
+## mod を直すときのルール
+
+1. **コードを変えたら、同じコミットで `<mod>/.claude-plugin/plugin.json` の `version` を上げる**（例: 0.1.1 → 0.1.2）。利用者は `claude plugin update` で更新するが、version が同じだと中身が変わっていても「最新」と判断され、反映されない
+2. **プラグイン名（`plugin.json` の `name`）を変えるときは、`.claude-plugin/marketplace.json` の `plugins[].name` も同じ名前に揃える。** インストール名は `<プラグイン名>@claude-mods-lab` なので、食い違うと更新・インストールができない。名前は `types/index.d.ts` と `register.tsx` の状態キー（`plugin:`）にも出るので、あわせて直す
+3. 最後に `claude plugin validate .` を通す
+
 ## 新しい mod を追加するとき
 
 1. 直下に `<mod名>/` を作る。`.claude-plugin/plugin.json`、`hooks/hooks.json`、`hooks/register.tsx`、必要なら `types/index.d.ts` を置く
