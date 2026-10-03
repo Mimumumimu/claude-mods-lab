@@ -15,6 +15,11 @@ const tokensAtom = atom({ plugin: 'meter', key: 'tokens' } as const, { input: 0,
 
 // ---- terminal: the same figures as the band, as one text line ----
 
+// Nothing counted yet (a fresh load, or before the first turn ends): '–', never a misleading 0
+function count(tokens: Tokens, n: number): string {
+  return tokens.input + tokens.output + tokens.cache === 0 ? '–' : compact(n)
+}
+
 function line(snap: Snap | null, tokens: Tokens, now: number, isCloud: boolean): string {
   if (!snap) return 'まだ計測されていません'
   const parts: string[] = [isCloud ? 'Cloud' : 'Local']
@@ -24,7 +29,7 @@ function line(snap: Snap | null, tokens: Tokens, now: number, isCloud: boolean):
     const left = remaining(r.resetsAt, now)
     parts.push((isFive ? '5h ' : '7d ') + Math.round(r.percentUsed) + '%' + (left ? ' (' + left + ')' : ''))
   }
-  parts.push('↑' + compact(tokens.input) + ' ↓' + compact(tokens.output) + ' cache ' + compact(tokens.cache))
+  parts.push('↑' + count(tokens, tokens.input) + ' ↓' + count(tokens, tokens.output) + ' cache ' + count(tokens, tokens.cache))
   if (snap.usd != null) parts.push('$' + snap.usd.toFixed(2))
   return parts.join(' | ')
 }
@@ -52,9 +57,9 @@ function capsules(snap: Snap, tokens: Tokens, now: number, isCloud: boolean): Ca
     if (left) parts.push(sep, iconPart('clock'), text(left))
     out.push(capsule(isFive ? 'green' : 'purple', parts))
   }
-  out.push(capsule('red', [iconPart('up'), text(compact(tokens.input))]))
-  out.push(capsule('green', [iconPart('down'), text(compact(tokens.output))]))
-  out.push(capsule('blue', [iconPart('stack'), text(compact(tokens.cache))]))
+  out.push(capsule('red', [iconPart('up'), text(count(tokens, tokens.input))]))
+  out.push(capsule('green', [iconPart('down'), text(count(tokens, tokens.output))]))
+  out.push(capsule('blue', [iconPart('stack'), text(count(tokens, tokens.cache))]))
   if (snap.usd != null) out.push(capsule('yellow', [iconPart('coin'), text('$' + snap.usd.toFixed(2))]))
   return out
 }
