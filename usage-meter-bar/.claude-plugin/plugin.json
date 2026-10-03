@@ -1,6 +1,6 @@
 {
   "name": "usage-meter-bar",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "デスクトップではプロンプト上の帯に使用量メーター（5h/7d・トークン・金額）を描き、ターミナルではステータス行に文字で出す",
   "types": "./types/index.d.ts",
   "author": { "name": "You" }
