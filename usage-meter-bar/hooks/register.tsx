@@ -1,10 +1,10 @@
 // usage-meter-bar: plan limits, tokens and cost in view.
 // - Desktop: a band above the prompt of rounded capsules (SVG)
-// - Terminal: one text line in the status line, same as usage-meter-sample
+// - Terminal: the same figures as one text line in the status line
 // - /meter: prints the text line on demand
 
 import { atom, read, update } from 'claude-code'
-import type { EngineInterface, Register, SessionUsage } from 'claude-code'
+import type { EngineInterface, Register } from 'claude-code'
 
 import type { Snap, Tokens } from '../types'
 import { bar, capsule, compact, iconPart, remaining, sep, text } from './capsule'
@@ -13,39 +13,25 @@ import type { Capsule } from './capsule'
 const snapAtom = atom({ plugin: 'usage-meter-bar', key: 'snap' } as const, null)
 const tokensAtom = atom({ plugin: 'usage-meter-bar', key: 'tokens' } as const, { input: 0, output: 0, cache: 0 })
 
-const LABELS: Record<string, string> = { five_hour: 'セッション', seven_day: '今週' }
+// ---- terminal: the same figures as the band, as one text line ----
 
-function pad(n: number): string {
-  return n < 10 ? '0' + n : String(n)
-}
-
-// ---- terminal: the text line, as in usage-meter-sample ----
-
-function resetText(kind: string, resetsAt: string | undefined): string {
-  if (resetsAt == null) return ''
-  const at = new Date(resetsAt)
-  const minutes = Math.round((at.getTime() - Date.now()) / 60000)
-  if (isNaN(minutes) || !(minutes > 0)) return ''
-  if (kind === 'five_hour') {
-    return ' (リセット ' + at.getHours() + ':' + pad(at.getMinutes()) + ')'
+function line(snap: Snap | null, tokens: Tokens, now: number, isCloud: boolean): string {
+  if (!snap) return 'まだ計測されていません'
+  const parts: string[] = [isCloud ? 'Cloud' : 'Local']
+  for (const r of snap.rateLimits) {
+    const isFive = r.kind === 'five_hour'
+    if (!isFive && r.kind !== 'seven_day') continue
+    const left = remaining(r.resetsAt, now)
+    parts.push((isFive ? '5h ' : '7d ') + Math.round(r.percentUsed) + '%' + (left ? ' (' + left + ')' : ''))
   }
-  const d = Math.floor(minutes / 1440)
-  const h = Math.floor((minutes % 1440) / 60)
-  const m = minutes % 60
-  const t = d ? d + 'D' + (h ? h + 'H' : '') : h ? h + 'H' : m + 'M'
-  return ' (リセット' + t + ')'
-}
-
-function full(u: SessionUsage | null): string {
-  if (!u) return 'まだ計測されていません'
-  const parts: string[] = []
-  if (u.context && u.context.percent != null) {
-    parts.push('会話' + Math.round(u.context.percent) + '%')
-  }
-  for (const r of u.rateLimits || []) {
-    parts.push((LABELS[r.kind] || r.kind) + ' ' + Math.round(r.percentUsed) + '%' + resetText(r.kind, r.resetsAt))
-  }
+  parts.push('↑' + compact(tokens.input) + ' ↓' + compact(tokens.output) + ' cache ' + compact(tokens.cache))
+  if (snap.usd != null) parts.push('$' + snap.usd.toFixed(2))
   return parts.join(' | ')
+}
+
+async function isCloudSession($: EngineInterface): Promise<boolean> {
+  // no API names where the engine runs; the cloud container sets this variable
+  return (await $.env.get('CLAUDE_CODE_REMOTE')) === 'true'
 }
 
 // ---- desktop: the capsules ----
@@ -76,13 +62,16 @@ function capsules(snap: Snap, tokens: Tokens, now: number, isCloud: boolean): Ca
 async function refresh($: EngineInterface): Promise<void> {
   try {
     const u = await $.session.usage()
-    await update($, snapAtom, () => ({
+    const snap: Snap = {
       rateLimits: (u.rateLimits || []).map(r => ({ kind: r.kind, percentUsed: r.percentUsed, resetsAt: r.resetsAt })),
       usd: u.cost ? u.cost.usd : null,
-    }))
+    }
+    await update($, snapAtom, () => snap)
     // the desktop draws the band; only a terminal gets the text line
     const surfaces = await $.session.surfaces()
-    if (surfaces.includes('terminal')) $.ui.status(full(u))
+    if (surfaces.includes('terminal')) {
+      $.ui.status(line(snap, await read($, tokensAtom), await $.clock.now(), await isCloudSession($)))
+    }
   } catch (err) {
     // keep the old figures if the read fails
   }
@@ -92,7 +81,7 @@ export const register: Register = on => {
   on('session.start', async ($, e, next) => {
     await $.command.register({
       name: 'meter',
-      description: '会話の長さとレート制限を表示',
+      description: '使用量メーターを表示',
     })
     await refresh($)
     return next(e)
@@ -124,8 +113,7 @@ export const register: Register = on => {
     const tokens = await read($, tokensAtom)
     const { Box, Svg } = $.ui.resolve(e)
     const now = await $.clock.now()
-    // no API names where the engine runs; the cloud container sets this variable
-    const isCloud = (await $.env.get('CLAUDE_CODE_REMOTE')) === 'true'
+    const isCloud = await isCloudSession($)
     return (
       <Box flexDirection="row" flexWrap="wrap" gap={1}>
         {capsules(snap, tokens, now, isCloud).map((c, i) => (
@@ -136,12 +124,7 @@ export const register: Register = on => {
   })
 
   on('command.run', { command: 'meter' }, async ($) => {
-    let u: SessionUsage | null = null
-    try {
-      u = await $.session.usage()
-    } catch (err) {
-      // fall through with nothing
-    }
-    return { text: full(u) }
+    const snap = await read($, snapAtom)
+    return { text: line(snap, await read($, tokensAtom), await $.clock.now(), await isCloudSession($)) }
   })
 }
