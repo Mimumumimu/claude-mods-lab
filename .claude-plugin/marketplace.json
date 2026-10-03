@@ -1,0 +1,11 @@
+{
+  "name": "claude-mods-lab",
+  "owner": { "name": "mimumu" },
+  "plugins": [
+    {
+      "name": "usage-meter-bar",
+      "source": "./usage-meter-bar",
+      "description": "デスクトップではプロンプト上の帯に使用量メーターを描き、ターミナルではステータス行に文字で出す"
+    }
+  ]
+}
