@@ -1,4 +1,4 @@
 {
-  "description": "usage-meter-bar hooks module",
+  "description": "meter hooks module",
   "modules": ["./register.tsx"]
 }

@@ -11,6 +11,6 @@ export type Tokens = {
 
 declare module 'claude-code' {
   interface PluginState {
-    'usage-meter-bar': { snap: Snap | null; tokens: Tokens }
+    'meter': { snap: Snap | null; tokens: Tokens }
   }
 }

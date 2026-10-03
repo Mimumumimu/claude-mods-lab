@@ -1,4 +1,4 @@
-// usage-meter-bar: plan limits, tokens and cost in view.
+// meter: plan limits, tokens and cost in view.
 // - Desktop: a band above the prompt of rounded capsules (SVG)
 // - Terminal: the same figures as one text line in the status line
 // - /meter: prints the text line on demand
@@ -10,8 +10,8 @@ import type { Snap, Tokens } from '../types'
 import { bar, capsule, compact, iconPart, remaining, sep, text } from './capsule'
 import type { Capsule } from './capsule'
 
-const snapAtom = atom({ plugin: 'usage-meter-bar', key: 'snap' } as const, null)
-const tokensAtom = atom({ plugin: 'usage-meter-bar', key: 'tokens' } as const, { input: 0, output: 0, cache: 0 })
+const snapAtom = atom({ plugin: 'meter', key: 'snap' } as const, null)
+const tokensAtom = atom({ plugin: 'meter', key: 'tokens' } as const, { input: 0, output: 0, cache: 0 })
 
 // ---- terminal: the same figures as the band, as one text line ----
 
