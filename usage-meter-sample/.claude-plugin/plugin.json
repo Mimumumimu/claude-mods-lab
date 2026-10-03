@@ -1,0 +1,6 @@
+{
+  "name": "usage-meter",
+  "version": "0.1.0",
+  "description": "ステータスラインに会話の使用率とレート制限を表示し、/meter で同じ内容を出す",
+  "author": { "name": "You" }
+}
