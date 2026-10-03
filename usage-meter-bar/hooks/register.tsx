@@ -50,8 +50,9 @@ function full(u: SessionUsage | null): string {
 
 // ---- desktop: the capsules ----
 
-function capsules(snap: Snap, tokens: Tokens, now: number): Capsule[] {
+function capsules(snap: Snap, tokens: Tokens, now: number, isCloud: boolean): Capsule[] {
   const out: Capsule[] = []
+  out.push(capsule('gray', [iconPart(isCloud ? 'cloud' : 'laptop'), text(isCloud ? 'Cloud' : 'Local')]))
   for (const r of snap.rateLimits) {
     const isFive = r.kind === 'five_hour'
     if (!isFive && r.kind !== 'seven_day') continue
@@ -123,9 +124,11 @@ export const register: Register = on => {
     const tokens = await read($, tokensAtom)
     const { Box, Svg } = $.ui.resolve(e)
     const now = await $.clock.now()
+    // no API names where the engine runs; the cloud container sets this variable
+    const isCloud = (await $.env.get('CLAUDE_CODE_REMOTE')) === 'true'
     return (
       <Box flexDirection="row" flexWrap="wrap" gap={1}>
-        {capsules(snap, tokens, now).map((c, i) => (
+        {capsules(snap, tokens, now, isCloud).map((c, i) => (
           <Svg key={'c' + i} source={c.source} alt="使用量" width={c.width} height={c.height} />
         ))}
       </Box>

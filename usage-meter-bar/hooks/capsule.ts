@@ -1,6 +1,6 @@
 // SVG capsules for the AbovePrompt band. Pure functions: no engine calls.
 
-export type Tone = 'green' | 'purple' | 'red' | 'blue' | 'yellow'
+export type Tone = 'green' | 'purple' | 'red' | 'blue' | 'yellow' | 'gray'
 
 const COLORS: Record<Tone, string> = {
   green: '#22c55e',
@@ -8,9 +8,10 @@ const COLORS: Record<Tone, string> = {
   red: '#ef4444',
   blue: '#3b82f6',
   yellow: '#eab308',
+  gray: '#8b8f99',
 }
 
-export type Icon = 'meter' | 'calendar' | 'clock' | 'up' | 'down' | 'stack' | 'coin'
+export type Icon = 'meter' | 'calendar' | 'clock' | 'up' | 'down' | 'stack' | 'coin' | 'cloud' | 'laptop'
 
 const H = 24
 const FONT = 'font-family="system-ui,-apple-system,Segoe UI,sans-serif" font-size="12" font-weight="600"'
@@ -38,6 +39,10 @@ function icon(kind: Icon, x: number, c: string): string {
       return g('<path d="M7 2v10M3 8l4 4 4-4"/>')
     case 'stack':
       return g('<path d="M7 1.5l5.5 3L7 7.5 1.5 4.5z"/><path d="M1.5 7.5L7 10.5l5.5-3"/><path d="M1.5 10l5.5 3 5.5-3"/>')
+    case 'cloud':
+      return g('<path d="M4 11.5a3 3 0 0 1-.3-6A4 4 0 0 1 11.4 5a3.2 3.2 0 0 1-.4 6.5z"/>')
+    case 'laptop':
+      return g('<rect x="2.5" y="2.5" width="9" height="7" rx="1"/><path d="M1 12h12"/>')
     case 'coin':
       return g('<circle cx="7" cy="7" r="5.5"/><path d="M7 4v6M5.2 5.6c0-1 3.6-1 3.6 0s-3.6 1-3.6 2.2 3.6 1.2 3.6 0"/>')
   }
