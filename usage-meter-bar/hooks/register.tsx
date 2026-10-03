@@ -7,7 +7,7 @@ import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
 import type { Snap, Tokens } from '../types'
-import { bar, capsule, compact, iconPart, remaining, sep, text } from './capsule'
+import { capsule, compact, iconPart, remaining, sep, text } from './capsule'
 import type { Capsule } from './capsule'
 
 const snapAtom = atom({ plugin: 'meter', key: 'snap' } as const, null)
@@ -51,8 +51,7 @@ function capsules(snap: Snap, tokens: Tokens, now: number, isCloud: boolean): Ca
     const parts = [
       iconPart(isFive ? 'meter' : 'calendar'),
       text(isFive ? '5h' : '7d'),
-      bar(r.percentUsed),
-      text(Math.round(r.percentUsed) + '%', 28),
+      text(Math.round(r.percentUsed) + '%'),
     ]
     if (left) parts.push(sep, iconPart('clock'), text(left))
     out.push(capsule(isFive ? 'green' : 'purple', parts))

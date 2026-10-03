@@ -51,15 +51,11 @@ function icon(kind: Icon, x: number, c: string): string {
 type Part =
   | { t: 'icon'; icon: Icon }
   | { t: 'text'; text: string; slot?: number }
-  | { t: 'bar'; percent: number }
   | { t: 'sep' }
 
 export const text = (s: string, slot?: number): Part => ({ t: 'text', text: s, slot })
 export const iconPart = (i: Icon): Part => ({ t: 'icon', icon: i })
-export const bar = (percent: number): Part => ({ t: 'bar', percent })
 export const sep: Part = { t: 'sep' }
-
-const BAR_W = 56
 
 export type Capsule = { source: string; width: number; height: number }
 
@@ -77,14 +73,6 @@ export function capsule(tone: Tone, parts: Part[]): Capsule {
     } else if (p.t === 'text') {
       body += '<text x="' + x + '" y="16" fill="' + c + '" ' + FONT + '>' + esc(p.text) + '</text>'
       x += p.slot != null ? p.slot : textW(p.text)
-    } else if (p.t === 'bar') {
-      const pct = Math.max(0, Math.min(100, p.percent))
-      const fillW = Math.round((BAR_W * pct) / 100)
-      body += '<rect x="' + x + '" y="10" width="' + BAR_W + '" height="4" rx="2" fill="' + c + '" fill-opacity="0.25"/>'
-      if (fillW > 0) body += '<rect x="' + x + '" y="10" width="' + Math.max(fillW, 4) + '" height="4" rx="2" fill="' + c + '"/>'
-      // the vertical tick: the halfway mark
-      body += '<rect x="' + (x + BAR_W / 2 - 0.5) + '" y="7" width="1" height="10" fill="' + c + '" fill-opacity="0.7"/>'
-      x += BAR_W
     } else {
       body += '<rect x="' + x + '" y="6" width="1" height="12" fill="' + c + '" fill-opacity="0.4"/>'
       x += 1
